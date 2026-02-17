@@ -1,0 +1,5 @@
+{
+  "name": "Lumina Library",
+  "description": "A beautiful digital library to manage your PDFs, track reading streaks, and get AI-powered book suggestions.",
+  "requestFramePermissions": []
+}

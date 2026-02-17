@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lumina Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend+Mega:wght@300;400;700;800&family=Public+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/react-pdf@9.1.1/dist/Page/AnnotationLayer.css" />
+    <link rel="stylesheet" href="https://unpkg.com/react-pdf@9.1.1/dist/Page/TextLayer.css" />
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Public Sans', 'sans-serif'],
+              display: ['Lexend Mega', 'sans-serif'],
+            },
+            colors: {
+              pop: {
+                yellow: '#FFDE59',
+                blue: '#5CE1E6',
+                pink: '#FF66C4',
+                purple: '#8E44AD',
+                red: '#FF5757',
+                bg: '#FAFAFA'
+              },
+              dark: '#1a1a1a'
+            },
+            borderWidth: {
+              '3': '3px',
+              '4': '4px',
+            },
+            boxShadow: {
+              'hard': '4px 4px 0px 0px #000000',
+              'hard-white': '4px 4px 0px 0px #ffffff',
+              'hard-lg': '8px 8px 0px 0px #000000',
+              'hard-lg-white': '8px 8px 0px 0px #ffffff',
+              'hard-sm': '2px 2px 0px 0px #000000',
+              'hard-sm-white': '2px 2px 0px 0px #ffffff',
+              'hard-reverse': '-4px 4px 0px 0px #000000',
+            },
+            animation: {
+              'marquee': 'marquee 20s linear infinite',
+              'blink': 'blink 1s step-end infinite',
+              'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+            },
+            keyframes: {
+              marquee: {
+                '0%': { transform: 'translateX(100%)' },
+                '100%': { transform: 'translateX(-100%)' },
+              },
+              blink: {
+                '0%, 100%': { opacity: '1' },
+                '50%': { opacity: '0' },
+              },
+              shake: {
+                '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        background-color: #FAFAFA;
+        color: #000000;
+        overflow-x: hidden;
+        min-height: 100vh;
+        background-image: radial-gradient(#000 1px, transparent 1px);
+        background-size: 24px 24px;
+      }
+      
+      .dark body {
+        background-color: #1a1a1a;
+        background-image: radial-gradient(#ffffff 1px, transparent 1px);
+        color: #ffffff;
+      }
+
+      /* Custom Scrollbar - Brutalist */
+      ::-webkit-scrollbar {
+        width: 12px;
+        background: #fff;
+        border-left: 3px solid #000;
+      }
+      .dark ::-webkit-scrollbar {
+        background: #1a1a1a;
+        border-left: 3px solid #fff;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #000;
+        border: 2px solid #fff;
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: #fff;
+        border: 2px solid #1a1a1a;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #FF66C4;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.2.0",
+    "react/": "https://esm.sh/react@18.2.0/",
+    "react-dom": "https://esm.sh/react-dom@18.2.0?deps=react@18.2.0",
+    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client?deps=react@18.2.0",
+    "@google/genai": "https://esm.sh/@google/genai@^1.41.0",
+    "lucide-react": "https://esm.sh/lucide-react@0.263.1?deps=react@18.2.0",
+    "react-markdown": "https://esm.sh/react-markdown@9.0.0?deps=react@18.2.0",
+    "react-pdf": "https://esm.sh/react-pdf@9.1.1?deps=react@18.2.0,react-dom@18.2.0",
+    "react-pdf/": "https://esm.sh/react-pdf@9.1.1/?deps=react@18.2.0,react-dom@18.2.0",
+    "pdfjs-dist": "https://esm.sh/pdfjs-dist@4.4.168",
+    "pdfjs-dist/": "https://esm.sh/pdfjs-dist@4.4.168/",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
+  }
+}
+</script>
+</head>
+  <body class="antialiased selection:bg-pop-pink selection:text-white transition-colors duration-200">
+    <div id="root"></div>
+  </body>
+</html>
