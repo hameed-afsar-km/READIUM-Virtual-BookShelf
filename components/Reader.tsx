@@ -22,6 +22,9 @@ export const Reader: React.FC<ReaderProps> = ({ book, onBack, onUpdateBook }) =>
   const [bookmarks, setBookmarks] = useState<number[]>(book.bookmarks || []);
   const [showBookmarksList, setShowBookmarksList] = useState(false);
   
+  // Local state for the page input field
+  const [pageInput, setPageInput] = useState<string>(String(book.currentPage || 1));
+
   const pdfDocumentRef = useRef<any>(null); 
 
   useEffect(() => {
@@ -31,6 +34,11 @@ export const Reader: React.FC<ReaderProps> = ({ book, onBack, onUpdateBook }) =>
     };
     loadFile();
   }, [book.id]);
+
+  // Update input field when page changes externally (e.g. next/prev buttons)
+  useEffect(() => {
+    setPageInput(String(pageNumber));
+  }, [pageNumber]);
 
   const onDocumentLoadSuccess = async ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
@@ -47,6 +55,17 @@ export const Reader: React.FC<ReaderProps> = ({ book, onBack, onUpdateBook }) =>
     const isFinished = newPage >= numPages;
     await updateBookProgress(book.id, newPage, isFinished);
     onUpdateBook(book.id, newPage, isFinished);
+  };
+
+  const handlePageInputSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const targetPage = parseInt(pageInput, 10);
+    if (!isNaN(targetPage) && targetPage >= 1 && targetPage <= numPages) {
+      handlePageChange(targetPage);
+    } else {
+      // Reset to current page if invalid
+      setPageInput(String(pageNumber));
+    }
   };
 
   const handleToggleBookmark = async () => {
@@ -195,8 +214,17 @@ export const Reader: React.FC<ReaderProps> = ({ book, onBack, onUpdateBook }) =>
             </Button>
             
             <div className="bg-black dark:bg-white text-white dark:text-black px-6 py-2 font-display font-black text-xl skew-x-[-10deg]">
-               <span className="skew-x-[10deg] inline-block">
-                  {pageNumber} / {numPages}
+               <span className="skew-x-[10deg] inline-flex items-center gap-1">
+                  <form onSubmit={handlePageInputSubmit} className="inline-block">
+                    <input 
+                      type="text" 
+                      value={pageInput}
+                      onChange={(e) => setPageInput(e.target.value)}
+                      onBlur={() => setPageInput(String(pageNumber))}
+                      className="w-12 bg-transparent text-center outline-none border-b-2 border-white dark:border-black focus:border-pop-yellow transition-colors"
+                    />
+                  </form>
+                  <span>/ {numPages}</span>
                </span>
             </div>
 
