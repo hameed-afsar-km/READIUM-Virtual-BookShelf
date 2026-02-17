@@ -97,6 +97,35 @@ export const updateBookProgress = async (id: string, currentPage: number, isRead
   });
 };
 
+export const toggleBookmark = async (id: string, page: number): Promise<number[]> => {
+  const db = await openDB();
+  const tx = db.transaction(STORE_BOOKS, 'readwrite');
+  const store = tx.objectStore(STORE_BOOKS);
+
+  return new Promise((resolve, reject) => {
+    const getReq = store.get(id);
+    getReq.onsuccess = () => {
+      const book = getReq.result as Book;
+      if (book) {
+        const bookmarks = book.bookmarks || [];
+        const index = bookmarks.indexOf(page);
+        if (index === -1) {
+          bookmarks.push(page);
+          bookmarks.sort((a, b) => a - b);
+        } else {
+          bookmarks.splice(index, 1);
+        }
+        book.bookmarks = bookmarks;
+        store.put(book);
+        resolve(bookmarks);
+      } else {
+        reject(new Error("Book not found"));
+      }
+    };
+    getReq.onerror = () => reject(getReq.error);
+  });
+};
+
 export const deleteBook = async (id: string): Promise<void> => {
   const db = await openDB();
   const tx = db.transaction([STORE_BOOKS, STORE_FILES], 'readwrite');

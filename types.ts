@@ -8,6 +8,7 @@ export interface Book {
   lastReadAt: number; // timestamp
   addedAt: number; // timestamp
   coverColor: string; // Random pastel color for UI
+  bookmarks?: number[];
 }
 
 export interface PDFFile {

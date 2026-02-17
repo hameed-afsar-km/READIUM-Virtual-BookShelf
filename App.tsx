@@ -114,10 +114,17 @@ function App() {
     updateStreak();
   };
 
-  const handleUpdateBook = (id: string, page: number, isRead: boolean, totalPages?: number) => {
+  const handleUpdateBook = (id: string, page: number, isRead: boolean, totalPages?: number, bookmarks?: number[]) => {
     setBooks(prev => prev.map(b => {
       if (b.id === id) {
-        return { ...b, currentPage: page, isRead, lastReadAt: Date.now(), ...(totalPages ? { totalPages } : {}) };
+        return { 
+          ...b, 
+          currentPage: page, 
+          isRead, 
+          lastReadAt: Date.now(), 
+          ...(totalPages ? { totalPages } : {}),
+          ...(bookmarks ? { bookmarks } : {}) 
+        };
       }
       return b;
     }));

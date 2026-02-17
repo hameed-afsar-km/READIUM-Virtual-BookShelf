@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, Check, Bookmark, List, Trash } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Book } from '../types';
-import { getBookFile, updateBookProgress } from '../services/storage';
+import { getBookFile, updateBookProgress, toggleBookmark } from '../services/storage';
 
 // Use the .mjs worker for ES module environments to avoid "Failed to fetch dynamically imported module"
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs`;
@@ -11,7 +11,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@4.4.168/buil
 interface ReaderProps {
   book: Book;
   onBack: () => void;
-  onUpdateBook: (id: string, page: number, isRead: boolean, totalPages?: number) => void;
+  onUpdateBook: (id: string, page: number, isRead: boolean, totalPages?: number, bookmarks?: number[]) => void;
 }
 
 export const Reader: React.FC<ReaderProps> = ({ book, onBack, onUpdateBook }) => {
@@ -19,6 +19,8 @@ export const Reader: React.FC<ReaderProps> = ({ book, onBack, onUpdateBook }) =>
   const [numPages, setNumPages] = useState<number>(book.totalPages || 0);
   const [pageNumber, setPageNumber] = useState<number>(book.currentPage || 1);
   const [scale, setScale] = useState<number>(1.0);
+  const [bookmarks, setBookmarks] = useState<number[]>(book.bookmarks || []);
+  const [showBookmarksList, setShowBookmarksList] = useState(false);
   
   const pdfDocumentRef = useRef<any>(null); 
 
@@ -47,6 +49,18 @@ export const Reader: React.FC<ReaderProps> = ({ book, onBack, onUpdateBook }) =>
     onUpdateBook(book.id, newPage, isFinished);
   };
 
+  const handleToggleBookmark = async () => {
+    try {
+      const updatedBookmarks = await toggleBookmark(book.id, pageNumber);
+      setBookmarks(updatedBookmarks);
+      onUpdateBook(book.id, pageNumber, false, undefined, updatedBookmarks);
+    } catch (err) {
+      console.error("Failed to toggle bookmark", err);
+    }
+  };
+
+  const isBookmarked = bookmarks.includes(pageNumber);
+
   if (!fileData) return (
     <div className="h-screen flex flex-col items-center justify-center bg-pop-yellow border-8 border-black">
       <div className="font-display font-black text-4xl animate-pulse">LOADING DATA...</div>
@@ -54,19 +68,41 @@ export const Reader: React.FC<ReaderProps> = ({ book, onBack, onUpdateBook }) =>
   );
 
   return (
-    <div className="h-screen bg-pop-blue dark:bg-indigo-950 flex flex-col overflow-hidden transition-colors duration-200">
+    <div className="h-screen bg-pop-blue dark:bg-indigo-950 flex flex-col overflow-hidden transition-colors duration-200 relative">
       
       {/* Top Bar */}
       <div className="bg-white dark:bg-dark border-b-3 border-black dark:border-white h-16 px-4 flex items-center justify-between shrink-0 z-20">
-         <div className="flex items-center gap-4 max-w-[50%]">
+         <div className="flex items-center gap-4 max-w-[40%] md:max-w-[50%]">
             <Button variant="danger" size="sm" onClick={onBack} className="shadow-none border-2">
-               <X className="w-5 h-5 mr-1" /> EXIT
+               <X className="w-5 h-5 mr-1" /> <span className="hidden sm:inline">EXIT</span>
             </Button>
             <h1 className="font-display font-bold uppercase truncate border-l-3 border-black dark:border-white pl-4 text-black dark:text-white">{book.title}</h1>
          </div>
 
-         <div className="flex items-center gap-4">
-             <div className="flex bg-white dark:bg-neutral-800 border-3 border-black dark:border-white shadow-hard-sm dark:shadow-hard-sm-white text-black dark:text-white">
+         <div className="flex items-center gap-2 md:gap-4">
+             {/* Bookmark Controls */}
+             <div className="flex items-center">
+                <button 
+                  onClick={handleToggleBookmark}
+                  className={`p-2 border-3 border-black dark:border-white transition-all ${
+                    isBookmarked 
+                      ? 'bg-pop-yellow shadow-hard-sm dark:shadow-hard-sm-white text-black' 
+                      : 'bg-white dark:bg-neutral-800 text-gray-400 dark:text-gray-500 hover:text-black dark:hover:text-white'
+                  }`}
+                  title="Bookmark this page"
+                >
+                   <Bookmark className={`w-5 h-5 ${isBookmarked ? 'fill-current' : ''}`} />
+                </button>
+                <button 
+                  onClick={() => setShowBookmarksList(!showBookmarksList)}
+                  className={`p-2 border-y-3 border-r-3 border-black dark:border-white transition-all bg-white dark:bg-neutral-800 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-700 ${showBookmarksList ? 'bg-gray-200 dark:bg-neutral-700' : ''}`}
+                  title="View Bookmarks"
+                >
+                   <List className="w-5 h-5" />
+                </button>
+             </div>
+
+             <div className="hidden sm:flex bg-white dark:bg-neutral-800 border-3 border-black dark:border-white shadow-hard-sm dark:shadow-hard-sm-white text-black dark:text-white">
                  <button onClick={() => setScale(s => Math.max(0.5, s - 0.1))} className="p-2 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black border-r-3 border-black dark:border-white transition-colors">
                    <ZoomOut className="w-4 h-4"/>
                  </button>
@@ -79,6 +115,48 @@ export const Reader: React.FC<ReaderProps> = ({ book, onBack, onUpdateBook }) =>
              </div>
          </div>
       </div>
+
+      {/* Bookmarks Drawer */}
+      {showBookmarksList && (
+        <div className="absolute top-16 right-0 bottom-16 w-64 bg-white dark:bg-neutral-900 border-l-3 border-black dark:border-white z-30 shadow-hard-lg dark:shadow-hard-lg-white flex flex-col">
+           <div className="p-4 bg-pop-pink border-b-3 border-black dark:border-white flex justify-between items-center">
+              <span className="font-display font-black text-black">BOOKMARKS</span>
+              <span className="font-mono text-xs font-bold bg-white px-2 py-0.5 border-2 border-black">{bookmarks.length}</span>
+           </div>
+           <div className="flex-1 overflow-y-auto p-2 space-y-2">
+              {bookmarks.length === 0 ? (
+                <div className="text-center p-4 font-mono text-sm text-gray-500">
+                   No bookmarks yet.
+                </div>
+              ) : (
+                bookmarks.map((bm) => (
+                  <div key={bm} className="group flex items-center gap-2">
+                     <button 
+                       onClick={() => {
+                         handlePageChange(bm);
+                         setShowBookmarksList(false);
+                       }}
+                       className="flex-1 text-left p-3 font-mono font-bold border-2 border-black dark:border-white bg-white dark:bg-neutral-800 text-black dark:text-white hover:bg-pop-blue dark:hover:bg-pop-purple transition-colors shadow-sm hover:shadow-hard-sm dark:hover:shadow-hard-sm-white"
+                     >
+                       PAGE {bm}
+                     </button>
+                     <button 
+                       onClick={async (e) => {
+                         e.stopPropagation();
+                         const newBms = await toggleBookmark(book.id, bm);
+                         setBookmarks(newBms);
+                         onUpdateBook(book.id, pageNumber, false, undefined, newBms);
+                       }}
+                       className="p-3 border-2 border-black dark:border-white bg-pop-red text-white hover:bg-red-600 transition-colors"
+                     >
+                       <X className="w-4 h-4" />
+                     </button>
+                  </div>
+                ))
+              )}
+           </div>
+        </div>
+      )}
 
       {/* Reader Content */}
       <div className="flex-1 overflow-auto flex justify-center p-8 bg-[url('https://www.transparenttextures.com/patterns/graphy.png')]">
